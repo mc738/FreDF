@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{E2F36C57-8B65-4186-AB57-09EA9CE295A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigraDocCore.DocumentObjectModel", "..\External\PdfSharpCore\MigraDocCore.DocumentObjectModel\MigraDocCore.DocumentObjectModel.csproj", "{A491DE60-8DF2-4F1E-8688-BC0068C9243F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigraDocCore.Rendering", "..\External\PdfSharpCore\MigraDocCore.Rendering\MigraDocCore.Rendering.csproj", "{0B348135-883B-464D-859C-75136F877DE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfSharpCore", "..\External\PdfSharpCore\PdfSharpCore\PdfSharpCore.csproj", "{0C28F039-86CF-4D85-8DC8-0887ACA0AC70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfSharpCore.Charting", "..\External\PdfSharpCore\PdfSharpCore.Charting\PdfSharpCore.Charting.csproj", "{E5AB82DA-7430-49C4-B8E3-C0B8A8914B68}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FreDF.Core", "FreDF.Core\FreDF.Core.fsproj", "{CF3BFA02-5362-4E4E-B8A0-F4068C4D2132}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FreDF.TestConsole", "FreDF.TestConsole\FreDF.TestConsole.fsproj", "{4F5DBB1F-530E-4F7D-A7A8-5443B40667D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A491DE60-8DF2-4F1E-8688-BC0068C9243F} = {E2F36C57-8B65-4186-AB57-09EA9CE295A9}
+		{0B348135-883B-464D-859C-75136F877DE1} = {E2F36C57-8B65-4186-AB57-09EA9CE295A9}
+		{0C28F039-86CF-4D85-8DC8-0887ACA0AC70} = {E2F36C57-8B65-4186-AB57-09EA9CE295A9}
+		{E5AB82DA-7430-49C4-B8E3-C0B8A8914B68} = {E2F36C57-8B65-4186-AB57-09EA9CE295A9}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A491DE60-8DF2-4F1E-8688-BC0068C9243F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A491DE60-8DF2-4F1E-8688-BC0068C9243F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A491DE60-8DF2-4F1E-8688-BC0068C9243F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A491DE60-8DF2-4F1E-8688-BC0068C9243F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B348135-883B-464D-859C-75136F877DE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B348135-883B-464D-859C-75136F877DE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B348135-883B-464D-859C-75136F877DE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B348135-883B-464D-859C-75136F877DE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C28F039-86CF-4D85-8DC8-0887ACA0AC70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C28F039-86CF-4D85-8DC8-0887ACA0AC70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C28F039-86CF-4D85-8DC8-0887ACA0AC70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C28F039-86CF-4D85-8DC8-0887ACA0AC70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5AB82DA-7430-49C4-B8E3-C0B8A8914B68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5AB82DA-7430-49C4-B8E3-C0B8A8914B68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5AB82DA-7430-49C4-B8E3-C0B8A8914B68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5AB82DA-7430-49C4-B8E3-C0B8A8914B68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF3BFA02-5362-4E4E-B8A0-F4068C4D2132}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF3BFA02-5362-4E4E-B8A0-F4068C4D2132}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF3BFA02-5362-4E4E-B8A0-F4068C4D2132}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF3BFA02-5362-4E4E-B8A0-F4068C4D2132}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F5DBB1F-530E-4F7D-A7A8-5443B40667D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F5DBB1F-530E-4F7D-A7A8-5443B40667D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F5DBB1F-530E-4F7D-A7A8-5443B40667D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F5DBB1F-530E-4F7D-A7A8-5443B40667D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
