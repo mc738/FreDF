@@ -1,7 +1,10 @@
 ﻿namespace FreDF.Core
 
+open System.IO
+open System.Reflection.Metadata
 open System.Text.Json
 open System.Text.Json.Serialization
+open MigraDocCore.DocumentObjectModel
 open MigraDocCore.DocumentObjectModel
 open MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes
 open MigraDocCore.DocumentObjectModel.Shapes
@@ -91,7 +94,6 @@ type PDFHeaderStyle =
         style.ParagraphFormat.SpaceBefore <- s.Paragraph.SpaceBefore |> toUnit
         style.ParagraphFormat.Alignment <- enum<ParagraphAlignment> s.Paragraph.Align
 
-
 type PDFStyle =
     { [<JsonPropertyName("name")>]
       Name: string
@@ -147,8 +149,7 @@ type PDFStyle =
         //s.H4.DefineStyle(document, "Heading4")
         //s.H5.DefineStyle(document, "Heading5")
         //s.H6.DefineStyle(document, "Heading6")
-    
-
+   
 type PDF(document: Document) =
         
     let mutable currentSection: Section = document.AddSection()
@@ -192,10 +193,89 @@ type PDF(document: Document) =
             | false -> currentSection.AddImage(ImageSource.FromFile(path))
             
         image.Width = Unit.op_Implicit width |> ignore     
+      
+    member _.Bespoke(handler: Section -> unit, newSection: bool) =
+        if newSection then currentSection <- document.AddSection()
+        handler currentSection
         
     member _.Render(location: string) =
         let renderer = PdfDocumentRenderer(true)
         renderer.Document <- document
         renderer.RenderDocument()
         renderer.PdfDocument.Save(location)
+    
+[<RequireQualifiedAccess>]
+module Sections =
+    
+    let add document = ()
+        
+type ElementBuilder = Section -> unit
+    
+[<RequireQualifiedAccess>]
+module Elements =
+    
+    let text (styleName: string) (value: string) (section: Section) =
+        let p = section.AddParagraph()
+        
+        p.Style <- styleName
+        p.AddText value |> ignore
+    
+    let h1 (value: string) (section: Section) = text "Heading1" value section
+    
+    let h2 (value: string) (section: Section) = text "Heading2" value section
+    
+    let h3 (value: string) (section: Section) = text "Heading3" value section
+    
+    let h4 (value: string) (section: Section) = text "Heading4" value section
+    
+    let h5 (value: string) (section: Section) = text "Heading5" value section
+    
+    let h6 (value: string) (section: Section) = text "Heading6" value section
+    
+    let p (value: string) (section: Section) = text "Normal" value section
+            
+    let paragraphFn (fn: Paragraph -> unit) (section: Section) =
+        section.AddParagraph() |> fn
+        //section
+
+    let img (path: string) (width: string) (wrapInParagraph: bool) (section: Section) =        
+        let image =
+            match wrapInParagraph with
+            | true ->
+                let paragraph = section.AddParagraph()
+                paragraph.AddImage(ImageSource.FromFile(path))
+            | false -> section.AddImage(ImageSource.FromFile(path))
+            
+        image.Width = Unit.op_Implicit width |> ignore 
+    
+type FreDFSection = {
+    Portrait: bool
+    Elements: ElementBuilder list
+}
+    
+module Pdf =
+    
+    let init stylePath =
+        let document = Document()
+        let styles = File.ReadAllText stylePath |> JsonSerializer.Deserialize<PDFStyle>
+        styles.DefineDocumentStyle document
+        document
+    
+    let build (sections: FreDFSection list) (document: Document) =
+        sections
+        |> List.map (fun s ->
+            let section = document.AddSection()
+            section.PageSetup.Orientation <- if s.Portrait then Orientation.Portrait else Orientation.Landscape
+            s.Elements |> List.map (fun el -> el section) |> ignore    
+            )
+        |> ignore
+        
+        document
+      
+    let render (path: string) (document: Document) =
+        let renderer = PdfDocumentRenderer(true)
+        printfn $"{document.DefaultPageSetup.LeftMargin} {document.DefaultPageSetup.RightMargin}"
+        renderer.Document <- document
+        renderer.RenderDocument()
+        renderer.PdfDocument.Save(path)
     

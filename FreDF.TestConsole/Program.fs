@@ -30,9 +30,34 @@ let testDoc path =
     pdf.AddImage("C:\\Users\\44748\\Pictures\\Funny-Emo-Meme-Image-Photo-Joke-01.jpeg", "10cm", false, true)
     pdf.Render(path)
 
+let testDoc2 path =
+    Pdf.init "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json"
+    |> Pdf.build [
+        {
+            Portrait = true
+            Elements = [
+                Elements.h1 "Hello, World!"
+                Elements.p "Some text..."
+                Elements.h2 "Another header!"
+                Elements.p "Some more text..."
+            ]
+        }
+        {
+            Portrait = false
+            Elements = [
+                Elements.h1 "An image!"
+                Elements.img "C:\\Users\\44748\\Pictures\\Funny-Emo-Meme-Image-Photo-Joke-01.jpeg" "2cm" false
+            ]
+        }
+    ]
+    |> Pdf.render path
+
 [<EntryPoint>]
 let main argv =
-    testDoc $@"C:\\ProjectData\\TestPDFs\\{DateTime.Now.ToFileTime()}.pdf"
+    // Set the image source impl
+    ImageSource.ImageSourceImpl <- ImageSharpImageSource<SixLabors.ImageSharp.PixelFormats.Rgba32>() :> ImageSource
+    
+    testDoc2 $@"C:\\ProjectData\\TestPDFs\\{DateTime.Now.ToFileTime()}.pdf"
     
     let message = from "F#" // Call the function
     printfn "Hello world %s" message
