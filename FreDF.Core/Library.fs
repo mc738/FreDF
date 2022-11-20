@@ -212,7 +212,7 @@ module Sections =
 type ElementBuilder = Section -> unit
     
 [<RequireQualifiedAccess>]
-module Elements =
+module Dsl =
     
     let text (styleName: string) (value: string) (section: Section) =
         let p = section.AddParagraph()

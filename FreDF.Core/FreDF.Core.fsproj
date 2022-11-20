@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <WarnOn>3390;$(WarnOn)</WarnOn>
         <PackageProjectUrl>https://github.com/mc738/FreDF</PackageProjectUrl>
@@ -10,6 +10,10 @@
 
     <ItemGroup>
         <Compile Include="Library.fs" />
+        <Compile Include="Style.fs" />
+        <Compile Include="Elements.fs" />
+        <Compile Include="Structure.fs" />
+        <Compile Include="PdfRenderer.fs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -17,6 +21,7 @@
       <ProjectReference Include="..\..\External\PdfSharpCore\MigraDocCore.Rendering\MigraDocCore.Rendering.csproj" />
       <ProjectReference Include="..\..\External\PdfSharpCore\PdfSharpCore.Charting\PdfSharpCore.Charting.csproj" />
       <ProjectReference Include="..\..\External\PdfSharpCore\PdfSharpCore\PdfSharpCore.csproj" />
+      <ProjectReference Include="..\..\ToolBox\ToolBox\ToolBox.fsproj" />
     </ItemGroup>
 
 </Project>
