@@ -14,6 +14,8 @@
         <Compile Include="Elements.fs" />
         <Compile Include="Structure.fs" />
         <Compile Include="PdfRenderer.fs" />
+        <Compile Include="Data.fs" />
+        <Compile Include="Templating.fs" />
     </ItemGroup>
 
     <ItemGroup>

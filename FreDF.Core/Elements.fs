@@ -1,7 +1,11 @@
 ﻿namespace FreDF.Core
 
+
 [<RequireQualifiedAccess>]
 module Elements =
+
+    open System.Text.Json
+    open ToolBox.Core
 
     // All section elements
     // * Chart
@@ -14,7 +18,7 @@ module Elements =
     type DocumentElement =
         | Image
         | Paragraph of Paragraph
-        | Table of TableDefinition
+        | Table of Table
         | PageBreak
 
     // All cell elements
@@ -54,8 +58,7 @@ module Elements =
         | FormattedText of FormattedText
         | LineBreak
 
-
-    and TableDefinition =
+    and Table =
         { Borders: Style.Borders option
           Format: Style.ParagraphFormat option
           Shading: Style.Shading option
@@ -67,6 +70,39 @@ module Elements =
           KeepTogether: bool option
           Columns: TableColumn list
           Rows: TableRow list }
+
+        static member FromJson(element: JsonElement) =
+            { Borders =
+                Json.tryGetProperty "borders" element
+                |> Option.map Style.Borders.FromJson
+              Format =
+                Json.tryGetProperty "format" element
+                |> Option.map Style.ParagraphFormat.FromJson
+              Shading =
+                Json.tryGetProperty "shading" element
+                |> Option.bind Style.Shading.TryFromJson
+              Style = Json.tryGetStringProperty "style" element
+              TopPadding =
+                Json.tryGetProperty "topPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              BottomPadding =
+                Json.tryGetProperty "bottomPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              LeftPadding =
+                Json.tryGetProperty "leftPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              RightPadding =
+                Json.tryGetProperty "rightPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              KeepTogether = Json.tryGetBoolProperty "keepTogether" element
+              Columns =
+                Json.tryGetArrayProperty "columns" element
+                |> Option.map (List.map TableColumn.FromJson)
+                |> Option.defaultValue []
+              Rows =
+                Json.tryGetArrayProperty "rows" element
+                |> Option.map (List.map TableRow.FromJson)
+                |> Option.defaultValue [] }
 
         member t.ToDocObj() =
             let obj =
@@ -126,6 +162,29 @@ module Elements =
           LeftPadding: Style.Unit option
           RightPadding: Style.Unit option }
 
+        static member FromJson(element: JsonElement) =
+            { Borders =
+                Json.tryGetProperty "borders" element
+                |> Option.map Style.Borders.FromJson
+              Format =
+                Json.tryGetProperty "format" element
+                |> Option.map Style.ParagraphFormat.FromJson
+              Shading =
+                Json.tryGetProperty "shading" element
+                |> Option.bind Style.Shading.TryFromJson
+              Style = Json.tryGetStringProperty "style" element
+              Width =
+                Json.tryGetProperty "width" element
+                |> Option.bind Style.Unit.TryFromJson
+              HeadingFormat = Json.tryGetBoolProperty "headingFormat" element
+              KeepWith = Json.tryGetIntProperty "keepWith" element
+              LeftPadding =
+                Json.tryGetProperty "leftPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              RightPadding =
+                Json.tryGetProperty "rightPadding" element
+                |> Option.bind Style.Unit.TryFromJson }
+
         member tc.ToDocObj() =
             let obj =
                 MigraDocCore.DocumentObjectModel.Tables.Column()
@@ -161,7 +220,6 @@ module Elements =
 
     and TableRow =
         { Borders: Style.Borders option
-          Cells: TableCell list
           Format: Style.ParagraphFormat option
           Height: Style.Unit option
           Shading: Style.Shading option
@@ -170,7 +228,35 @@ module Elements =
           BottomPadding: Style.Unit option
           HeadingFormat: bool option
           KeepWith: int option
-          VerticalAlignment: Style.VerticalAlignment option }
+          VerticalAlignment: Style.VerticalAlignment option
+          Cells: TableCell list }
+
+        static member FromJson(element: JsonElement) =
+            { Borders =
+                Json.tryGetProperty "borders" element
+                |> Option.map Style.Borders.FromJson
+              Format =
+                Json.tryGetProperty "format" element
+                |> Option.map Style.ParagraphFormat.FromJson
+              Height =
+                Json.tryGetProperty "height" element
+                |> Option.bind Style.Unit.TryFromJson
+              Shading =
+                Json.tryGetProperty "shading" element
+                |> Option.bind Style.Shading.TryFromJson
+              Style = Json.tryGetStringProperty "style" element
+              TopPadding =
+                Json.tryGetProperty "topPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              BottomPadding =
+                Json.tryGetProperty "bottomPadding" element
+                |> Option.bind Style.Unit.TryFromJson
+              HeadingFormat = Json.tryGetBoolProperty "headingFormat" element
+              KeepWith = Json.tryGetIntProperty "keepWith" element
+              VerticalAlignment =
+                Json.tryGetIntProperty "verticalAlignment" element
+                |> Option.bind Style.VerticalAlignment.Deserialize
+              Cells = [] }
 
         member tr.ToDocObj() =
             let obj =
@@ -283,7 +369,6 @@ module Elements =
 
         member t.ToDocObj() =
             MigraDocCore.DocumentObjectModel.Text(t.Content)
-
 
     and FormattedText =
         { Bold: bool option

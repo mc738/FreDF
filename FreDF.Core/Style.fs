@@ -145,14 +145,6 @@ module Style =
 
             obj
 
-    and TableStyle =
-        { VerticalAlignment: VerticalAlignment option
-          Alignment: TableRowAlignment option
-          Padding: Padding option
-          Height: Unit option
-          Shading: Shading option
-          Borders: Borders option }
-
     and [<RequireQualifiedAccess>] BorderStyle =
         | None
         | Single
@@ -377,7 +369,7 @@ module Style =
           LineSpacingRule: LineSpacingRule option
           PageBreakBefore: bool option }
 
-        static member Default() =
+        static member Blank() =
             { Alignment = None
               Borders = None
               Font = None

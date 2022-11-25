@@ -10,17 +10,20 @@ open MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes
 open PdfSharpCore.Utils
 
 // Define a function to construct a message to print
-let from whom =
-    sprintf "from %s" whom
+let from whom = sprintf "from %s" whom
 
 let testDoc path =
     // Set the image source impl
     ImageSource.ImageSourceImpl <- ImageSharpImageSource<SixLabors.ImageSharp.PixelFormats.Rgba32>() :> ImageSource
     let document = Document()
-    let styles = File.ReadAllText "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json" |> JsonSerializer.Deserialize<PDFStyle>
+
+    let styles =
+        File.ReadAllText "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json"
+        |> JsonSerializer.Deserialize<PDFStyle>
+
     styles.DefineDocumentStyle document
-    
-    
+
+
     let pdf = PDF(document)
     pdf.AddHeader1("Header 1", false)
     pdf.AddParagraph("Some text...", false)
@@ -32,33 +35,305 @@ let testDoc path =
 
 let testDoc2 path =
     Pdf.init "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json"
-    |> Pdf.build [
-        {
-            Portrait = true
-            Elements = [
-                Elements.h1 "Hello, World!"
-                Elements.p "Some text..."
-                Elements.h2 "Another header!"
-                Elements.p "Some more text..."
-            ]
-        }
-        {
-            Portrait = false
-            Elements = [
-                Elements.h1 "An image!"
-                Elements.img "C:\\Users\\44748\\Pictures\\Funny-Emo-Meme-Image-Photo-Joke-01.jpeg" "2cm" false
-            ]
-        }
-    ]
+    |> Pdf.build [ { Portrait = true
+                     Elements =
+                       [ Dsl.h1 "Hello, World!"
+                         Dsl.p "Some text..."
+                         Dsl.h2 "Another header!"
+                         Dsl.p "Some more text..." ] }
+                   { Portrait = false
+                     Elements =
+                       [ Dsl.h1 "An image!"
+                         Dsl.img "C:\\Users\\44748\\Pictures\\Funny-Emo-Meme-Image-Photo-Joke-01.jpeg" "2cm" false ] } ]
     |> Pdf.render path
+
+module TemplateTest =
+
+    open FreDF.Core
+
+    let stylePath =
+        "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json"
+
+    let styles =
+        File.ReadAllText stylePath
+        |> JsonSerializer.Deserialize<PDFStyle>
+
+    let data =
+        ({ Data =
+            { Values =
+                [ "foo",
+                  [ [ "bar", Data.Value.Scalar "item 1"
+                      "baz",
+                      [ [ "inner1", Data.Value.Scalar "Value 1-1"
+                          "inner2", Data.Value.Scalar "Value 1-2"
+                          "inner3", Data.Value.Scalar "Value 1-3" ]
+                        |> Map.ofList
+                        |> Data.Value.Object
+                        [ "inner1", Data.Value.Scalar "Value 2-1"
+                          "inner2", Data.Value.Scalar "Value 2-2"
+                          "inner3", Data.Value.Scalar "Value 2-3" ]
+                        |> Map.ofList
+                        |> Data.Value.Object ]
+                      |> Data.Value.Array ]
+                    |> Map.ofList
+                    |> Data.Value.Object
+                    [ "bar", Data.Value.Scalar "item 2"
+                      "baz",
+                      [ [ "inner1", Data.Value.Scalar "Value 3-1"
+                          "inner2", Data.Value.Scalar "Value 3-2"
+                          "inner3", Data.Value.Scalar "Value 3-3" ]
+                        |> Map.ofList
+                        |> Data.Value.Object
+                        [ "inner1", Data.Value.Scalar "Value 4-1"
+                          "inner2", Data.Value.Scalar "Value 4-2"
+                          "inner3", Data.Value.Scalar "Value 4-3" ]
+                        |> Map.ofList
+                        |> Data.Value.Object ]
+                      |> Data.Value.Array ]
+                    |> Map.ofList
+                    |> Data.Value.Object ]
+                  |> Data.Value.Array
+
+
+                  ]
+                |> Map.ofList }
+           Iterators = { Items = Map.empty } }: Data.Context)
+
+    let ctx =
+        ({ Data = data; Scopes = [] }: Templating.TemplatingContext)
+
+    let template =
+        ({ Sections =
+            [ ({ Scope =
+                  Some(
+                      { Name = "iter1"
+                        Path =
+                          { Root = Data.Root
+                            Parts = [ Data.PathPart.Array("foo", "iter1") ] } }: Templating.Scope
+                  )
+                 ScopeType = Some Templating.SectionScopeType.Inner
+                 PageSetup = None
+                 Headers = None
+                 Footers = None
+                 Elements =
+                   [ ({ Scope = None
+                        Format = None
+                        Style = None
+                        Elements =
+                          [ ({ Content =
+                                [ Templating.Content.Value
+                                      { Root = Data.Iterator "iter1"
+                                        Parts = [ Data.PathPart.Object "bar" ] } ] }: Templating.TextTemplate)
+                            |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                     |> Templating.DocumentElementTemplate.Paragraph
+                     ({ Scope = None
+                        Borders = None
+                        Format = None
+                        Shading = None
+                        Style = None
+                        TopPadding = None
+                        BottomPadding = None
+                        LeftPadding = None
+                        RightPadding = None
+                        KeepTogether = None
+                        Columns =
+                          [ ({ Scope = None
+                               Borders = None
+                               Format = None
+                               Shading = None
+                               Style = None
+                               Width = Style.Unit.Centimeter 4. |> Some
+                               HeadingFormat = None
+                               KeepWith = None
+                               LeftPadding = None
+                               RightPadding = None }: Templating.TableColumnTemplate)
+                            ({ Scope = None
+                               Borders = None
+                               Format = None
+                               Shading = None
+                               Style = None
+                               Width = Style.Unit.Centimeter 4. |> Some
+                               HeadingFormat = None
+                               KeepWith = None
+                               LeftPadding = None
+                               RightPadding = None }: Templating.TableColumnTemplate)
+                            ({ Scope = None
+                               Borders = None
+                               Format = None
+                               Shading = None
+                               Style = None
+                               Width = Style.Unit.Centimeter 4. |> Some
+                               HeadingFormat = None
+                               KeepWith = None
+                               LeftPadding = None
+                               RightPadding = None }: Templating.TableColumnTemplate) ]
+                        Rows =
+                          [ ({ Scope = None
+                               Borders = None
+                               Format = None
+                               Shading = None
+                               Style = None
+                               TopPadding = None
+                               BottomPadding = None
+                               Height = Style.Unit.Centimeter 1. |> Some
+                               HeadingFormat = None
+                               KeepWith = None
+                               VerticalAlignment = None
+                               Cells =
+                                 [ ({ Scope = None
+                                      Index = 0
+                                      Borders = None
+                                      Format = None
+                                      Shading = None
+                                      Style = None
+                                      MergeDown = None
+                                      MergeRight = None
+                                      VerticalAlignment = None
+                                      Elements =
+                                        [ ({ Scope = None
+                                             Format = None
+                                             Style = None
+                                             Elements =
+                                               [ ({ Content = [ Templating.Content.Literal "Field 1" ] }: Templating.TextTemplate)
+                                                 |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                                          |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate)
+                                   ({ Scope = None
+                                      Index = 1
+                                      Borders = None
+                                      Format = None
+                                      Shading = None
+                                      Style = None
+                                      MergeDown = None
+                                      MergeRight = None
+                                      VerticalAlignment = None
+                                      Elements =
+                                        [ ({ Scope = None
+                                             Format = None
+                                             Style = None
+                                             Elements =
+                                               [ ({ Content = [ Templating.Content.Literal "Field 2" ] }: Templating.TextTemplate)
+                                                 |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                                          |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate)
+                                   ({ Scope = None
+                                      Index = 2
+                                      Borders = None
+                                      Format = None
+                                      Shading = None
+                                      Style = None
+                                      MergeDown = None
+                                      MergeRight = None
+                                      VerticalAlignment = None
+                                      Elements =
+                                        [ ({ Scope = None
+                                             Format = None
+                                             Style = None
+                                             Elements =
+                                               [ ({ Content = [ Templating.Content.Literal "Field 3" ] }: Templating.TextTemplate)
+                                                 |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                                          |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate) ] }: Templating.TableRowTemplate)
+                            ({ Scope =
+                                ({ Name = "iter2"
+                                   Path =
+                                     { Root = Data.Iterator "iter1"
+                                       Parts = [ Data.PathPart.Array("baz", "iter2") ] } }: Templating.Scope)
+                                |> Some
+                               Borders = None
+                               Format = None
+                               Shading = None
+                               Style = None
+                               TopPadding = None
+                               BottomPadding = None
+                               Height = Style.Unit.Centimeter 1. |> Some
+                               HeadingFormat = None
+                               KeepWith = None
+                               VerticalAlignment = None
+                               Cells =
+                                 [ ({ Scope = None
+                                      Index = 0
+                                      Borders = None
+                                      Format = None
+                                      Shading = None
+                                      Style = None
+                                      MergeDown = None
+                                      MergeRight = None
+                                      VerticalAlignment = None
+                                      Elements =
+                                        [ ({ Scope = None
+                                             Format = None
+                                             Style = None
+                                             Elements =
+                                               [ ({ Content =
+                                                     [ Templating.Content.Value
+                                                           { Root = Data.Iterator "iter2"
+                                                             Parts = [ Data.PathPart.Object "inner1" ] } ] }: Templating.TextTemplate)
+                                                 |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                                          |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate)
+                                   ({ Scope = None
+                                      Index = 1
+                                      Borders = None
+                                      Format = None
+                                      Shading = None
+                                      Style = None
+                                      MergeDown = None
+                                      MergeRight = None
+                                      VerticalAlignment = None
+                                      Elements =
+                                        [ ({ Scope = None
+                                             Format = None
+                                             Style = None
+                                             Elements =
+                                               [ ({ Content =
+                                                     [ Templating.Content.Value
+                                                           { Root = Data.Iterator "iter2"
+                                                             Parts = [ Data.PathPart.Object "inner2" ] } ] }: Templating.TextTemplate)
+                                                 |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                                          |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate)
+                                   ({ Scope = None
+                                      Index = 2
+                                      Borders = None
+                                      Format = None
+                                      Shading = None
+                                      Style = None
+                                      MergeDown = None
+                                      MergeRight = None
+                                      VerticalAlignment = None
+                                      Elements =
+                                        [ ({ Scope = None
+                                             Format = None
+                                             Style = None
+                                             Elements =
+                                               [ ({ Content =
+                                                     [ Templating.Content.Value
+                                                           { Root = Data.Iterator "iter2"
+                                                             Parts = [ Data.PathPart.Object "inner3" ] } ] }: Templating.TextTemplate)
+                                                 |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
+                                          |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate) ] }: Templating.TableRowTemplate) ] }: Templating.TableTemplate)
+                     |> Templating.DocumentElementTemplate.Table ] }: Templating.TemplateSection) ] }: Templating.Template)
+
+
+    let run _ =
+        let i = 0
+
+        //let r = Templating.ParagraphTemplate
+
+        let doc = template.Build(ctx)
+
+
+        PdfRenderer.run styles "C:\\ProjectData\\TestPDFs\\template_test-1.pdf" doc
+
+
+        ()
+
 
 [<EntryPoint>]
 let main argv =
     // Set the image source impl
     ImageSource.ImageSourceImpl <- ImageSharpImageSource<SixLabors.ImageSharp.PixelFormats.Rgba32>() :> ImageSource
-    
+
+    TemplateTest.run ()
+
     testDoc2 $@"C:\\ProjectData\\TestPDFs\\{DateTime.Now.ToFileTime()}.pdf"
-    
+
     let message = from "F#" // Call the function
     printfn "Hello world %s" message
     0 // return an integer exit code
