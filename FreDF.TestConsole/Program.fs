@@ -105,6 +105,7 @@ module TemplateTest =
     let template =
         ({ Sections =
             [ ({ Scope =
+                  // $.root - name iter1 - Could be defined as $.(iter1)__foo
                   Some(
                       { Name = "iter1"
                         Path =
@@ -122,7 +123,7 @@ module TemplateTest =
                         Elements =
                           [ ({ Content =
                                 [ Templating.Content.Value
-                                      { Root = Data.Iterator "iter1"
+                                      { Root = Data.Iterator "iter1" // This would be defined as `iter1.bar`
                                         Parts = [ Data.PathPart.Object "bar" ] } ] }: Templating.TextTemplate)
                             |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
                      |> Templating.DocumentElementTemplate.Paragraph
@@ -232,6 +233,7 @@ module TemplateTest =
                                                  |> Templating.ParagraphElementTemplate.Text ] }: Templating.ParagraphTemplate)
                                           |> Templating.CellElementTemplate.Paragraph ] }: Templating.TableCellTemplate) ] }: Templating.TableRowTemplate)
                             ({ Scope =
+                                // iter1.baz - name iter2
                                 ({ Name = "iter2"
                                    Path =
                                      { Root = Data.Iterator "iter1"
@@ -316,8 +318,14 @@ module TemplateTest =
 
         //let r = Templating.ParagraphTemplate
 
-        let doc = template.Build(ctx)
+        let t = template
+        
+        let template2 = (File.ReadAllText "C:\\ProjectData\\Fiket\\prototypes\\test_template.json" |> JsonDocument.Parse).RootElement |> Templating.Template.FromJson 
+        
+        let doc = template2.Build(ctx)
 
+        
+        
 
         PdfRenderer.run styles "C:\\ProjectData\\TestPDFs\\template_test-1.pdf" doc
 
@@ -325,8 +333,18 @@ module TemplateTest =
         ()
 
 
+
+
 [<EntryPoint>]
 let main argv =
+    let test = Data.Path.Parse("$.foo[iter1]")
+    
+    let test2 = Data.Path.Parse("iter1.bar")
+    
+    let test3 = Templating.Scope.TryParse("$.foo[iter1]")
+    
+    let test4 = Templating.Scope.TryParse($"iter1.baz[iter2]")
+    
     // Set the image source impl
     ImageSource.ImageSourceImpl <- ImageSharpImageSource<SixLabors.ImageSharp.PixelFormats.Rgba32>() :> ImageSource
 

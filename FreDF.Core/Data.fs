@@ -4,6 +4,17 @@
 module Data =
 
     open System.Text.Json
+    open System.Text.RegularExpressions
+
+    module Internal =
+
+        /// Captures a path part like in the format `key[iterator]`.
+        let pathPartRegex =
+            Regex(
+                "^^(?<key>.*?)\[(?<iterator>.*?)\]$$",
+                RegexOptions.ExplicitCapture
+                ||| RegexOptions.Compiled
+            )
 
     type Context =
         { Data: Data
@@ -174,6 +185,34 @@ module Data =
         { Root: PathRoot
           Parts: PathPart list }
 
+        static member Parse(value: string) =
+            let parts = value.Split('.')
+
+            let root =
+                match parts |> Array.tryHead with
+                | Some "$" -> PathRoot.Root
+                | Some root -> PathRoot.Iterator root
+                | None -> PathRoot.Root
+
+            let parsePath (value: string) =
+                let matches = Internal.pathPartRegex.Match value
+                
+                match matches.Success with
+                | true ->
+                    // Check this doesn't fail!
+                    PathPart.Array(matches.Groups["key"].Value, matches.Groups["iterator"].Value)
+                | false -> PathPart.Object value
+
+
+            { Root = root
+              Parts =
+                parts
+                |> Array.tail
+                |> Array.map parsePath
+                |> List.ofArray }
+
+
+
     and Iterators =
         { Items: Map<string, Iterator> }
 
@@ -204,14 +243,16 @@ module Data =
             |> Option.map (fun (iterator, newState) ->
                 let rec traverse (name: string, state: Map<string, Iterator>) =
                     // This should look for any children (not parents)...
-                    
+
                     state
                     |> Map.filter (fun _ v -> v.Parent = Some name)
-                    |> Map.fold (fun (state: Map<string,Iterator>) k v ->
-                        state.Add(k, v.Reset())
-                        |> fun s -> traverse (k, s)) (state)
-                    
-                    (*
+                    |> Map.fold
+                        (fun (state: Map<string, Iterator>) k v ->
+                            state.Add(k, v.Reset())
+                            |> fun s -> traverse (k, s))
+                        (state)
+
+                (*
                     match state.TryFind name with
                     | Some i ->
                         match i.Parent with
@@ -220,11 +261,11 @@ module Data =
                     | None -> state
                     *)
                 traverse (name, newState)
-                
-                (*
+
+            (*
                 match iterator.Parent with
                 | Some parent -> traverse (parent, newState)
-                | None -> newState*))
+                | None -> newState*) )
             |> Option.map (fun newState -> { is with Items = newState })
             |> Option.defaultValue is
 
@@ -259,8 +300,6 @@ module Data =
             { Root = PathRoot.Root
               Parts = traverse (name, []) }
 
-
-
         member is.ExpandPath(path: Path) =
             match path.Root with
             | PathRoot.Root -> path
@@ -269,7 +308,6 @@ module Data =
 
                 { Root = PathRoot.Root
                   Parts = is.GetPathPaths name @ path.Parts }
-
 
     and Iterator =
         { Parent: string option

@@ -1,9 +1,10 @@
 ﻿namespace FreDF.Core
 
-open PdfSharpCore
-
 [<RequireQualifiedAccess>]
 module Structure =
+
+    open System.Text.Json
+    open ToolBox.Core
 
     type PdfDocument =
         { Sections: Section list }
@@ -28,14 +29,14 @@ module Structure =
                 MigraDocCore.DocumentObjectModel.Section()
 
             s.PageSetup
-            |> Option.iter (fun ps -> obj.PageSetup <- ps.toDocObj())
+            |> Option.iter (fun ps -> obj.PageSetup <- ps.toDocObj ())
 
             s.Headers
             |> Option.iter (fun h -> obj.Headers <- h.ToDocObj())
-            
+
             s.Footers
             |> Option.iter (fun f -> obj.Footers <- f.ToDocObj())
-            
+
             s.Elements
             |> List.iter (function
                 | Elements.DocumentElement.Paragraph p -> obj.Add(paragraph = p.ToDocObj())
@@ -48,16 +49,22 @@ module Structure =
         { Primary: HeaderFooter option
           FirstPage: HeaderFooter option
           EvenPages: HeaderFooter option }
-        
+
         member hf.ToDocObj() =
-            let obj = MigraDocCore.DocumentObjectModel.HeadersFooters()
-            
-            hf.Primary |> Option.iter (fun p -> obj.Primary <- p.ToDocObj())
-            hf.FirstPage |> Option.iter (fun fp -> obj.FirstPage <- fp.ToDocObj())
-            hf.EvenPages |> Option.iter (fun ep -> obj.EvenPage <- ep.ToDocObj())
-            
+            let obj =
+                MigraDocCore.DocumentObjectModel.HeadersFooters()
+
+            hf.Primary
+            |> Option.iter (fun p -> obj.Primary <- p.ToDocObj())
+
+            hf.FirstPage
+            |> Option.iter (fun fp -> obj.FirstPage <- fp.ToDocObj())
+
+            hf.EvenPages
+            |> Option.iter (fun ep -> obj.EvenPage <- ep.ToDocObj())
+
             obj
-    
+
     and HeaderFooter =
         { Format: Style.ParagraphFormat option
           Style: string option
@@ -118,7 +125,7 @@ module Structure =
               HorizontalPageBreak = None
               DifferentFirstPageHeaderFooter = None
               OddAndEvenPagesHeaderFooter = None }
-        
+
         static member Default() =
             { Orientation = Some PageOrientation.Portrait
               TopMargin = None
@@ -136,6 +143,46 @@ module Structure =
               HorizontalPageBreak = None
               DifferentFirstPageHeaderFooter = None
               OddAndEvenPagesHeaderFooter = None }
+
+        static member FromJson(element: JsonElement) =
+            { Orientation =
+                Json.tryGetIntProperty "orientation" element
+                |> Option.bind PageOrientation.TryDeserialize
+              TopMargin =
+                Json.tryGetProperty "topMargin" element
+                |> Option.bind Style.Unit.TryFromJson
+              BottomMargin =
+                Json.tryGetProperty "bottomMargin" element
+                |> Option.bind Style.Unit.TryFromJson
+              LeftMargin =
+                Json.tryGetProperty "leftMargin" element
+                |> Option.bind Style.Unit.TryFromJson
+              RightMargin =
+                Json.tryGetProperty "rightMargin" element
+                |> Option.bind Style.Unit.TryFromJson
+              HeaderDistance =
+                Json.tryGetProperty "headerDistance" element
+                |> Option.bind Style.Unit.TryFromJson
+              FooterDistance =
+                Json.tryGetProperty "footerDistance" element
+                |> Option.bind Style.Unit.TryFromJson
+              MirrorMargins = Json.tryGetBoolProperty "mirrorMargins" element
+              PageHeight =
+                Json.tryGetProperty "pageHeight" element
+                |> Option.bind Style.Unit.TryFromJson
+              PageWidth =
+                Json.tryGetProperty "pageWidth" element
+                |> Option.bind Style.Unit.TryFromJson
+              PageFormat =
+                Json.tryGetIntProperty "pageFormat" element
+                |> Option.bind PageFormat.TryDeserialize
+              SectionStart =
+                Json.tryGetIntProperty "sectionStart" element
+                |> Option.bind BreakType.TryDeserialize
+              StartingNumber = Json.tryGetIntProperty "startingNumber" element
+              HorizontalPageBreak = Json.tryGetBoolProperty "horizontalPageBreak" element
+              DifferentFirstPageHeaderFooter = Json.tryGetBoolProperty "differentFirstPageHeaderFooter" element
+              OddAndEvenPagesHeaderFooter = Json.tryGetBoolProperty "oddAndEvenPagesHeaderFooter" element }
 
         member ps.toDocObj() =
             let obj =
@@ -200,11 +247,11 @@ module Structure =
             | 0 -> Some PageOrientation.Portrait
             | 1 -> Some PageOrientation.Landscape
             | _ -> None
-            
+
         static member Deserialize(value: int) =
             PageOrientation.TryDeserialize value
             |> Option.defaultValue PageOrientation.Portrait
-        
+
         member po.ToDocObj() =
             match po with
             | PageOrientation.Portrait -> MigraDocCore.DocumentObjectModel.Orientation.Portrait
@@ -223,7 +270,7 @@ module Structure =
         | Legal
         | Ledger
         | P11x17
-        
+
         static member TryDeserialize(value: int) =
             match value with
             | 0 -> Some A0
@@ -243,7 +290,7 @@ module Structure =
         static member Deserialize(value: int) =
             PageFormat.TryDeserialize value
             |> Option.defaultValue PageFormat.A4
-        
+
         member pf.ToDocObj() =
             match pf with
             | PageFormat.A0 -> MigraDocCore.DocumentObjectModel.PageFormat.A0
@@ -263,10 +310,13 @@ module Structure =
         | BreakNextPage
         | BreakEvenPage
         | BreakOddPage
-        
+
         static member TryDeserialize(value: int) =
             match value with
-            | 0 -> Some 
+            | 0 -> Some BreakType.BreakNextPage
+            | 1 -> Some BreakType.BreakEvenPage
+            | 2 -> Some BreakType.BreakOddPage
+            | _ -> None
 
         member bt.ToDocObj() =
             match bt with
