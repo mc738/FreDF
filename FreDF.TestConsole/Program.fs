@@ -319,36 +319,110 @@ module TemplateTest =
         //let r = Templating.ParagraphTemplate
 
         let t = template
-        
-        let template2 = (File.ReadAllText "C:\\ProjectData\\Fiket\\prototypes\\test_template.json" |> JsonDocument.Parse).RootElement |> Templating.Template.FromJson 
-        
-        let doc = template2.Build(ctx)
 
-        
-        
+        let template2 =
+            (File.ReadAllText "C:\\ProjectData\\Fiket\\prototypes\\test_template.json"
+             |> JsonDocument.Parse)
+                .RootElement
+            |> Templating.Template.FromJson
+
+        let doc = template2.Build(ctx)
 
         PdfRenderer.run styles "C:\\ProjectData\\TestPDFs\\template_test-1.pdf" doc
 
 
         ()
 
+module FullTemplateTest =
 
+    let stylePath =
+        "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json"
 
+    let styles =
+        File.ReadAllText stylePath
+        |> JsonSerializer.Deserialize<PDFStyle>
+
+    let run _ =
+
+        let loadJson path =
+            (File.ReadAllText path |> JsonDocument.Parse)
+                .RootElement
+
+        let unwrap (result: Result<'T, 'E>) =
+            match result with
+            | Ok r -> r
+            | Error _ -> failwith "Error"
+
+        let data =
+            Data.Data.FromJson(loadJson "C:\\ProjectData\\Fiket\\prototypes\\test_data.json") |> unwrap
+
+        let ctx =
+            ({ Data =
+                { Data = data
+                  Iterators = { Items = Map.empty } }
+               Scopes = [] }: Templating.TemplatingContext)
+
+        let template =
+            loadJson "C:\\ProjectData\\Fiket\\prototypes\\test_template.json"
+            |> Templating.Template.FromJson
+
+        let doc = template.Build(ctx)
+
+        PdfRenderer.run styles "C:\\ProjectData\\TestPDFs\\template_test-full.pdf" doc
+        
+module QuoteTemplateTest =
+
+    let stylePath =
+        "C:\\Users\\44748\\Projects\\PDFBuilder\\styles.json"
+
+    let styles =
+        File.ReadAllText stylePath
+        |> JsonSerializer.Deserialize<PDFStyle>
+
+    let run _ =
+
+        let loadJson path =
+            (File.ReadAllText path |> JsonDocument.Parse)
+                .RootElement
+
+        let unwrap (result: Result<'T, 'E>) =
+            match result with
+            | Ok r -> r
+            | Error _ -> failwith "Error"
+
+        let data =
+            Data.Data.FromJson(loadJson "C:\\ProjectData\\Fiket\\prototypes\\test_quote_data.json") |> unwrap
+
+        let ctx =
+            ({ Data =
+                { Data = data
+                  Iterators = { Items = Map.empty } }
+               Scopes = [] }: Templating.TemplatingContext)
+
+        let template =
+            loadJson "C:\\ProjectData\\Fiket\\prototypes\\test_quote_template.json"
+            |> Templating.Template.FromJson
+
+        let doc = template.Build(ctx)
+
+        PdfRenderer.run styles "C:\\ProjectData\\TestPDFs\\quote_test.pdf" doc
 
 [<EntryPoint>]
 let main argv =
     let test = Data.Path.Parse("$.foo[iter1]")
-    
+
     let test2 = Data.Path.Parse("iter1.bar")
-    
-    let test3 = Templating.Scope.TryParse("$.foo[iter1]")
-    
-    let test4 = Templating.Scope.TryParse($"iter1.baz[iter2]")
-    
+
+    let test3 =
+        Templating.Scope.TryParse("$.foo[iter1]")
+
+    let test4 =
+        Templating.Scope.TryParse($"iter1.baz[iter2]")
+
     // Set the image source impl
     ImageSource.ImageSourceImpl <- ImageSharpImageSource<SixLabors.ImageSharp.PixelFormats.Rgba32>() :> ImageSource
 
-    TemplateTest.run ()
+    QuoteTemplateTest.run ()
 
     testDoc2 $@"C:\\ProjectData\\TestPDFs\\{DateTime.Now.ToFileTime()}.pdf"
 

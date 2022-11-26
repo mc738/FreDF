@@ -243,69 +243,22 @@ module Style =
             let obj =
                 MigraDocCore.DocumentObjectModel.Borders()
 
-            match b.Color with
-            | Some c -> obj.Color <- c.ToDocObj()
-            | None -> ()
-
-            match b.Distance with
-            | Some d -> obj.Distance <- d.ToDocObj()
-            | None -> ()
-
-            match b.Style with
-            | Some bs -> obj.Style <- bs.ToDocObj()
-            | None -> ()
-
-            match b.Visible with
-            | Some v -> obj.Visible <- v
-            | None -> ()
-
-            match b.BordersCleared with
-            | Some bc -> obj.BordersCleared <- bc
-            | None -> ()
-
-            match b.Width with
-            | Some w -> obj.Width <- w.ToDocObj()
-            | None -> ()
-
-            match b.DistanceFromTop with
-            | Some dft -> obj.DistanceFromTop <- dft.ToDocObj()
-            | None -> ()
-
-            match b.DistanceFromBottom with
-            | Some dfb -> obj.DistanceFromBottom <- dfb.ToDocObj()
-            | None -> ()
-
-            match b.DistanceFromLeft with
-            | Some dfl -> obj.DistanceFromLeft <- dfl.ToDocObj()
-            | None -> ()
-
-            match b.DistanceFromRight with
-            | Some dfr -> obj.DistanceFromRight <- dfr.ToDocObj()
-            | None -> ()
-
-            match b.Top with
-            | Some t -> obj.Top <- t.ToDocObj()
-            | None -> ()
-
-            match b.Bottom with
-            | Some b -> obj.Bottom <- b.ToDocObj()
-            | None -> ()
-
-            match b.Left with
-            | Some l -> obj.Left <- l.ToDocObj()
-            | None -> ()
-
-            match b.Right with
-            | Some r -> obj.Right <- r.ToDocObj()
-            | None -> ()
-
-            match b.DiagonalUp with
-            | Some du -> obj.DiagonalUp <- du.ToDocObj()
-            | None -> ()
-
-            match b.DiagonalDown with
-            | Some dd -> obj.DiagonalDown <- dd.ToDocObj()
-            | None -> ()
+            b.Color |> Option.iter (fun c -> obj.Color <- c.ToDocObj())            
+            b.Distance |> Option.iter(fun d -> obj.Distance <- d.ToDocObj())
+            b.Style |> Option.iter (fun bs -> obj.Style <- bs.ToDocObj())
+            b.Visible |> Option.iter (fun v -> obj.Visible <- v)
+            b.BordersCleared |> Option.iter (fun bc -> obj.BordersCleared <- bc)
+            b.Width |> Option.iter (fun w -> obj.Width <- w.ToDocObj())
+            b.DistanceFromTop |> Option.iter (fun dft -> obj.DistanceFromTop <- dft.ToDocObj())
+            b.DistanceFromBottom |> Option.iter (fun dfb -> obj.DistanceFromBottom <- dfb.ToDocObj())
+            b.DistanceFromLeft |> Option.iter (fun dfl -> obj.DistanceFromLeft <- dfl.ToDocObj())
+            b.DistanceFromRight |> Option.iter (fun dfr -> obj.DistanceFromRight <- dfr.ToDocObj())
+            b.Top |> Option.iter (fun t -> obj.Top <- t.ToDocObj())
+            b.Bottom |> Option.iter (fun b -> obj.Bottom <- b.ToDocObj())
+            b.Left |> Option.iter (fun l -> obj.Left <- l.ToDocObj())
+            b.Right |> Option.iter (fun r -> obj.Right <- r.ToDocObj())
+            b.DiagonalUp |> Option.iter (fun du -> obj.DiagonalUp <- du.ToDocObj())
+            b.DiagonalDown |> Option.iter (fun dd -> obj.DiagonalDown <- dd.ToDocObj())
 
             obj
 

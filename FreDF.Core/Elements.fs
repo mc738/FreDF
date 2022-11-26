@@ -353,6 +353,9 @@ module Elements =
             let obj =
                 MigraDocCore.DocumentObjectModel.Paragraph()
 
+            p.Format |> Option.iter (fun f -> obj.Format <- f.ToDocObj())
+            p.Style |> Option.iter (fun s -> obj.Style <- s)
+            
             p.Elements
             |> List.iter (function
                 | ParagraphElement.Image -> ()
