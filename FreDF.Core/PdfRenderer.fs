@@ -1,5 +1,7 @@
 ﻿namespace FreDF.Core
 
+open System.IO
+
 module PdfRenderer =
     
     let init (style: PDFStyle) =
@@ -23,6 +25,17 @@ module PdfRenderer =
         renderer.Document <- pdf
         renderer.RenderDocument()
         renderer.PdfDocument.Save(savePath)
+        
+    let copyToStream (styles: PDFStyle) (stream: Stream) (document: Structure.PdfDocument) =
+        let pdf =  build styles document
+        
+        let renderer = MigraDocCore.Rendering.PdfDocumentRenderer(true)
+        renderer.Document <- pdf
+        renderer.RenderDocument()
+        renderer.PdfDocument.Save(stream)
+        
+        
+    
         
         
 

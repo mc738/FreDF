@@ -6,15 +6,19 @@ open MigraDocCore.DocumentObjectModel
 
 
 module Templating =
-    
+
 
     open ToolBox.Core
 
-    
+
     module Internal =
-        
-        let contentRegex = Regex("\{\{(?<value>((\$\.|[A-Za-z]).+?))\}\}|\{\{%(?<preprocessor>(.+?))\}\}|(?<=}}|^)(?<literal>(.+?))(?={{|$)", RegexOptions.ExplicitCapture ||| RegexOptions.Compiled)
-    
+
+        let contentRegex =
+            Regex(
+                "\{\{(?<value>((\$\.|[A-Za-z]).+?))\}\}|\{\{%(?<preprocessor>(.+?))\}\}|(?<=}}|^)(?<literal>(.+?))(?={{|$)",
+                RegexOptions.ExplicitCapture ||| RegexOptions.Compiled
+            )
+
     [<RequireQualifiedAccess>]
     type Content =
         | Literal of string
@@ -136,9 +140,7 @@ module Templating =
           Elements: DocumentElementTemplate list }
 
         static member FromJson(element: JsonElement) =
-            { Scope =
-                Json.tryGetStringProperty "scope" element
-                |> Option.bind Scope.TryParse
+            { Scope = Json.tryGetStringProperty "scope" element |> Option.bind Scope.TryParse
               ScopeType =
                 Json.tryGetBoolProperty "innerScope" element
                 |> Option.map (function
@@ -164,28 +166,21 @@ module Templating =
                 |> List.fold
                     (fun (elements, ctx) el ->
                         match el with
-                        | DocumentElementTemplate.Image -> failwith "TODO"
+                        | DocumentElementTemplate.Image i ->
+                            // TODO Can build multiple pics?
+                            elements @ [ i.Build(ctx) |> Elements.DocumentElement.Image ], ctx
                         | DocumentElementTemplate.Paragraph p ->
                             match p.Build(ctx) with
                             | TemplatingResult.Single (result, templatingContext) ->
-                                elements
-                                @ [ Elements.DocumentElement.Paragraph result ],
-                                templatingContext
+                                elements @ [ Elements.DocumentElement.Paragraph result ], templatingContext
                             | TemplatingResult.Multiple (results, templatingContext) ->
-                                elements
-                                @ (results
-                                   |> List.map Elements.DocumentElement.Paragraph),
-                                templatingContext
+                                elements @ (results |> List.map Elements.DocumentElement.Paragraph), templatingContext
                         | DocumentElementTemplate.Table t ->
                             match t.build (ctx) with
                             | TemplatingResult.Single (result, newCtx) ->
-                                elements
-                                @ [ Elements.DocumentElement.Table result ],
-                                newCtx
+                                elements @ [ Elements.DocumentElement.Table result ], newCtx
                             | TemplatingResult.Multiple (results, newCtx) ->
-                                elements
-                                @ (results |> List.map Elements.DocumentElement.Table),
-                                newCtx
+                                elements @ (results |> List.map Elements.DocumentElement.Table), newCtx
                         | DocumentElementTemplate.PageBreak -> elements @ [ Elements.DocumentElement.PageBreak ], ctx)
                     ([], ctx)
                 |> fst
@@ -197,13 +192,9 @@ module Templating =
                    Footers = None // TODO
                    Elements = buildElements ctx }: Structure.Section)
 
-            match ts.Scope,
-                  ts.ScopeType
-                  |> Option.defaultValue SectionScopeType.Standard
-                with
+            match ts.Scope, ts.ScopeType |> Option.defaultValue SectionScopeType.Standard with
             | Some s, SectionScopeType.Standard ->
-                ctx.Iterate(s, build)
-                |> fun (ctx, els) -> TemplatingResult.Multiple(els, ctx)
+                ctx.Iterate(s, build) |> fun (ctx, els) -> TemplatingResult.Multiple(els, ctx)
             | Some s, SectionScopeType.Inner ->
                 ctx.Iterate(s, buildElements)
                 |> fun (ctx, els) ->
@@ -214,9 +205,7 @@ module Templating =
                      ctx)
                     |> TemplatingResult.Single
 
-            | None, _ ->
-                build ctx
-                |> fun s -> TemplatingResult.Single(s, ctx)
+            | None, _ -> build ctx |> fun s -> TemplatingResult.Single(s, ctx)
 
     and HeaderFooterTemplates =
         { Primary: HeaderFooterTemplate option
@@ -250,7 +239,7 @@ module Templating =
                 |> Option.defaultValue [] }
 
     and [<RequireQualifiedAccess>] DocumentElementTemplate =
-        | Image
+        | Image of ImageTemplate
         | Paragraph of ParagraphTemplate
         | Table of TableTemplate
         | PageBreak
@@ -258,15 +247,9 @@ module Templating =
         static member TryFromJson(element: JsonElement) =
             Json.tryGetStringProperty "type" element
             |> Option.bind (function
-                | "image" -> failwith "TODO"
-                | "paragraph" ->
-                    ParagraphTemplate.FromJson element
-                    |> DocumentElementTemplate.Paragraph
-                    |> Some
-                | "table" ->
-                    TableTemplate.FromJson element
-                    |> DocumentElementTemplate.Table
-                    |> Some
+                | "image" -> ImageTemplate.FromJson element |> DocumentElementTemplate.Image |> Some
+                | "paragraph" -> ParagraphTemplate.FromJson element |> DocumentElementTemplate.Paragraph |> Some
+                | "table" -> TableTemplate.FromJson element |> DocumentElementTemplate.Table |> Some
                 | "page-break" -> Some DocumentElementTemplate.PageBreak
                 | _ -> None)
 
@@ -285,31 +268,19 @@ module Templating =
           Rows: TableRowTemplate list }
 
         static member FromJson(element: JsonElement) =
-            { Scope =
-                Json.tryGetStringProperty "scope" element
-                |> Option.bind Scope.TryParse
-              Borders =
-                Json.tryGetProperty "borders" element
-                |> Option.map Style.Borders.FromJson
+            { Scope = Json.tryGetStringProperty "scope" element |> Option.bind Scope.TryParse
+              Borders = Json.tryGetProperty "borders" element |> Option.map Style.Borders.FromJson
               Format =
                 Json.tryGetProperty "format" element
                 |> Option.map Style.ParagraphFormat.FromJson
-              Shading =
-                Json.tryGetProperty "shading" element
-                |> Option.bind Style.Shading.TryFromJson
+              Shading = Json.tryGetProperty "shading" element |> Option.bind Style.Shading.TryFromJson
               Style = Json.tryGetStringProperty "style" element
-              TopPadding =
-                Json.tryGetProperty "topPadding" element
-                |> Option.bind Style.Unit.TryFromJson
+              TopPadding = Json.tryGetProperty "topPadding" element |> Option.bind Style.Unit.TryFromJson
               BottomPadding =
                 Json.tryGetProperty "bottomPadding" element
                 |> Option.bind Style.Unit.TryFromJson
-              LeftPadding =
-                Json.tryGetProperty "leftPadding" element
-                |> Option.bind Style.Unit.TryFromJson
-              RightPadding =
-                Json.tryGetProperty "rightPadding" element
-                |> Option.bind Style.Unit.TryFromJson
+              LeftPadding = Json.tryGetProperty "leftPadding" element |> Option.bind Style.Unit.TryFromJson
+              RightPadding = Json.tryGetProperty "rightPadding" element |> Option.bind Style.Unit.TryFromJson
               KeepTogether = Json.tryGetBoolProperty "keepTogether" element
               Columns =
                 Json.tryGetArrayProperty "columns" element
@@ -366,30 +337,18 @@ module Templating =
           RightPadding: Style.Unit option }
 
         static member FromJson(element: JsonElement) =
-            { Scope =
-                Json.tryGetStringProperty "scope" element
-                |> Option.bind Scope.TryParse
-              Borders =
-                Json.tryGetProperty "borders" element
-                |> Option.map Style.Borders.FromJson
+            { Scope = Json.tryGetStringProperty "scope" element |> Option.bind Scope.TryParse
+              Borders = Json.tryGetProperty "borders" element |> Option.map Style.Borders.FromJson
               Format =
                 Json.tryGetProperty "format" element
                 |> Option.map Style.ParagraphFormat.FromJson
-              Shading =
-                Json.tryGetProperty "shading" element
-                |> Option.bind Style.Shading.TryFromJson
+              Shading = Json.tryGetProperty "shading" element |> Option.bind Style.Shading.TryFromJson
               Style = Json.tryGetStringProperty "style" element
-              Width =
-                Json.tryGetProperty "width" element
-                |> Option.bind Style.Unit.TryFromJson
+              Width = Json.tryGetProperty "width" element |> Option.bind Style.Unit.TryFromJson
               HeadingFormat = Json.tryGetBoolProperty "headingFormat" element
               KeepWith = Json.tryGetIntProperty "keepWith" element
-              LeftPadding =
-                Json.tryGetProperty "leftPadding" element
-                |> Option.bind Style.Unit.TryFromJson
-              RightPadding =
-                Json.tryGetProperty "rightPadding" element
-                |> Option.bind Style.Unit.TryFromJson }
+              LeftPadding = Json.tryGetProperty "leftPadding" element |> Option.bind Style.Unit.TryFromJson
+              RightPadding = Json.tryGetProperty "rightPadding" element |> Option.bind Style.Unit.TryFromJson }
 
         member tct.Build(ctx: TemplatingContext) =
             // TODO handle scope
@@ -421,25 +380,15 @@ module Templating =
 
         static member FromJson(element: JsonElement) =
 
-            { Scope =
-                Json.tryGetStringProperty "scope" element
-                |> Option.bind Scope.TryParse
-              Borders =
-                Json.tryGetProperty "borders" element
-                |> Option.map Style.Borders.FromJson
+            { Scope = Json.tryGetStringProperty "scope" element |> Option.bind Scope.TryParse
+              Borders = Json.tryGetProperty "borders" element |> Option.map Style.Borders.FromJson
               Format =
                 Json.tryGetProperty "format" element
                 |> Option.map Style.ParagraphFormat.FromJson
-              Height =
-                Json.tryGetProperty "height" element
-                |> Option.bind Style.Unit.TryFromJson
-              Shading =
-                Json.tryGetProperty "shading" element
-                |> Option.bind Style.Shading.TryFromJson
+              Height = Json.tryGetProperty "height" element |> Option.bind Style.Unit.TryFromJson
+              Shading = Json.tryGetProperty "shading" element |> Option.bind Style.Shading.TryFromJson
               Style = Json.tryGetStringProperty "style" element
-              TopPadding =
-                Json.tryGetProperty "topPadding" element
-                |> Option.bind Style.Unit.TryFromJson
+              TopPadding = Json.tryGetProperty "topPadding" element |> Option.bind Style.Unit.TryFromJson
               BottomPadding =
                 Json.tryGetProperty "bottomPadding" element
                 |> Option.bind Style.Unit.TryFromJson
@@ -479,12 +428,8 @@ module Templating =
                    Cells = cells }: Elements.TableRow)
 
             match trt.Scope with
-            | Some s ->
-                ctx.Iterate(s, build)
-                |> fun (ctx, rs) -> TemplatingResult.Multiple(rs, ctx)
-            | None ->
-                build ctx
-                |> fun r -> TemplatingResult.Single(r, ctx)
+            | Some s -> ctx.Iterate(s, build) |> fun (ctx, rs) -> TemplatingResult.Multiple(rs, ctx)
+            | None -> build ctx |> fun r -> TemplatingResult.Single(r, ctx)
 
     and TableCellTemplate =
         { Scope: Scope option
@@ -499,21 +444,13 @@ module Templating =
           Elements: CellElementTemplate list }
 
         static member FromJson(element: JsonElement) =
-            { Scope =
-                Json.tryGetStringProperty "scope" element
-                |> Option.bind Scope.TryParse
-              Index =
-                Json.tryGetIntProperty "index" element
-                |> Option.defaultValue 0
-              Borders =
-                Json.tryGetProperty "borders" element
-                |> Option.map Style.Borders.FromJson
+            { Scope = Json.tryGetStringProperty "scope" element |> Option.bind Scope.TryParse
+              Index = Json.tryGetIntProperty "index" element |> Option.defaultValue 0
+              Borders = Json.tryGetProperty "borders" element |> Option.map Style.Borders.FromJson
               Format =
                 Json.tryGetProperty "format" element
                 |> Option.map Style.ParagraphFormat.FromJson
-              Shading =
-                Json.tryGetProperty "shading" element
-                |> Option.bind Style.Shading.TryFromJson
+              Shading = Json.tryGetProperty "shading" element |> Option.bind Style.Shading.TryFromJson
               Style = Json.tryGetStringProperty "style" element
               MergeDown = Json.tryGetIntProperty "mergeDown" element
               MergeRight = Json.tryGetIntProperty "mergeRight" element
@@ -533,15 +470,15 @@ module Templating =
                 |> List.fold
                     (fun (els, ctx) el ->
                         match el with
-                        | CellElementTemplate.Image -> failwith "Images to be implemented"
+                        | CellElementTemplate.Image i ->
+                            // TODO generate multiple images?
+                            els @ [ i.Build(ctx) |> Elements.CellElement.Image ], ctx
                         | CellElementTemplate.Paragraph p ->
                             match p.Build(ctx) with
                             | TemplatingResult.Single (result, templatingContext) ->
                                 els @ [ Elements.CellElement.Paragraph result ], templatingContext
                             | TemplatingResult.Multiple (results, templatingContext) ->
-                                els
-                                @ (results |> List.map Elements.CellElement.Paragraph),
-                                templatingContext)
+                                els @ (results |> List.map Elements.CellElement.Paragraph), templatingContext)
                     ([], ctx)
 
             ({ Index = tct.Index
@@ -556,23 +493,20 @@ module Templating =
             |> fun r -> TemplatingResult.Single(r, newCtx)
 
     and [<RequireQualifiedAccess>] CellElementTemplate =
-        | Image
+        | Image of ImageTemplate
         | Paragraph of ParagraphTemplate
 
         static member TryFromJson(element: JsonElement) =
             Json.tryGetStringProperty "type" element
             |> Option.bind (function
-                | "image" -> failwith "TODO"
-                | "paragraph" ->
-                    ParagraphTemplate.FromJson element
-                    |> CellElementTemplate.Paragraph
-                    |> Some
+                | "image" ->  ImageTemplate.FromJson element |> CellElementTemplate.Image |> Some
+                | "paragraph" -> ParagraphTemplate.FromJson element |> CellElementTemplate.Paragraph |> Some
                 | _ -> None)
 
-        member cet.Build(ctx: TemplatingContext) =
-            match cet with
-            | Image -> failwith "Images to be implemented"
-            | Paragraph p -> p.Build(ctx)
+        //member cet.Build(ctx: TemplatingContext) =
+        //    match cet with
+        //    | Image i -> i.Build(ctx) |> CellElementTemplate.Image
+        //    | Paragraph p -> p.Build(ctx) |> CellElementTemplate.Paragraph
 
     and ParagraphTemplate =
         { Scope: Scope option
@@ -581,18 +515,14 @@ module Templating =
           Elements: ParagraphElementTemplate list }
 
         static member FromJson(element: JsonElement) =
-            { Scope =
-                Json.tryGetStringProperty "scope" element
-                |> Option.bind Scope.TryParse
+            { Scope = Json.tryGetStringProperty "scope" element |> Option.bind Scope.TryParse
               Format =
                 Json.tryGetProperty "format" element
                 |> Option.map Style.ParagraphFormat.FromJson
               Style = Json.tryGetStringProperty "style" element
               Elements =
                 Json.tryGetArrayProperty "elements" element
-                |> Option.map (fun els ->
-                    els
-                    |> List.choose ParagraphElementTemplate.TryFromJson)
+                |> Option.map (fun els -> els |> List.choose ParagraphElementTemplate.TryFromJson)
                 |> Option.defaultValue [] }
 
         member pt.Build(ctx: TemplatingContext) =
@@ -603,8 +533,7 @@ module Templating =
                        Style = pt.Style
                        Elements = pt.Elements |> List.map (fun el -> el.Build(tc)) }: Elements.Paragraph)
 
-                ctx.Iterate(s, build)
-                |> fun (ctx, els) -> TemplatingResult.Multiple(els, ctx)
+                ctx.Iterate(s, build) |> fun (ctx, els) -> TemplatingResult.Multiple(els, ctx)
             | None ->
                 // No scope, so simply build the paragraph
                 ({ Format = pt.Format
@@ -613,7 +542,7 @@ module Templating =
                 |> fun r -> TemplatingResult.Single(r, ctx)
 
     and [<RequireQualifiedAccess>] ParagraphElementTemplate =
-        | Image
+        | Image of ImageTemplate
         | Space
         | Tab
         | Text of TextTemplate
@@ -624,12 +553,10 @@ module Templating =
         static member TryFromJson(element: JsonElement) =
             Json.tryGetStringProperty "type" element
             |> Option.bind (function
-                | "image" -> failwith "TODO"
+                | "image" -> ImageTemplate.FromJson element |> ParagraphElementTemplate.Image |> Some
                 | "space" -> Some ParagraphElementTemplate.Space
                 | "tab" -> Some ParagraphElementTemplate.Tab
-                | "text" ->
-                    TextTemplate.FromJson element
-                    |> Option.map ParagraphElementTemplate.Text
+                | "text" -> TextTemplate.FromJson element |> Option.map ParagraphElementTemplate.Text
                 | "formatted-text" -> None
                 | "line-break" -> None
                 | "conditional" -> failwith "TODO"
@@ -637,13 +564,11 @@ module Templating =
 
         member pet.Build(ctx: TemplatingContext) =
             match pet with
-            | Image -> Elements.ParagraphElement.Image
+            | Image i -> i.Build(ctx) |> Elements.ParagraphElement.Image
             | Space -> Elements.ParagraphElement.Space
             | Tab -> Elements.ParagraphElement.Tab
             | Text tt -> tt.Build(ctx) |> Elements.ParagraphElement.Text
-            | FormattedText ftt ->
-                ftt.Build(ctx)
-                |> Elements.ParagraphElement.FormattedText
+            | FormattedText ftt -> ftt.Build(ctx) |> Elements.ParagraphElement.FormattedText
             | LineBreak -> Elements.ParagraphElement.LineBreak
             | Conditional _ -> failwith "To implement"
 
@@ -662,16 +587,15 @@ module Templating =
                             m.Groups
                             |> Seq.skip 1
                             |> Seq.tryFind (fun g -> g.Success)
-                            |> Option.map (fun g ->g.Name, g.Value)
+                            |> Option.map (fun g -> g.Name, g.Value)
                             |> Option.defaultValue ("literal", m.Value)
+
                         match group with
-                        | "value" ->
-                            Data.Path.Parse value
-                            |> Content.Value
-                        | "preprocessor" ->
-                            Content.Processor (*value*)
+                        | "value" -> Data.Path.Parse value |> Content.Value
+                        | "preprocessor" -> Content.Processor (*value*)
                         | "literal"
                         | _ -> Content.Literal value)
+
                 { Content = content })
 
         member tt.Build(ctx: TemplatingContext) =
@@ -680,10 +604,7 @@ module Templating =
                 (fun acc c ->
                     match c with
                     | Content.Literal v -> Some v :: acc
-                    | Content.Value v ->
-                        (ctx.Data.Iterators.ExpandPath v
-                         |> ctx.ResolveValue)
-                        :: acc
+                    | Content.Value v -> (ctx.Data.Iterators.ExpandPath v |> ctx.ResolveValue) :: acc
                     | Content.Processor -> failwith "TODO")
                 []
             |> List.choose id
@@ -704,27 +625,19 @@ module Templating =
 
         static member FromJson(element: JsonElement) =
             { Bold = Json.tryGetBoolProperty "bold" element
-              Color =
-                Json.tryGetProperty "color" element
-                |> Option.bind Style.Color.TryFromJson
+              Color = Json.tryGetProperty "color" element |> Option.bind Style.Color.TryFromJson
               Italic = Json.tryGetBoolProperty "italic" element
-              Size =
-                Json.tryGetProperty "size" element
-                |> Option.bind Style.Unit.TryFromJson
+              Size = Json.tryGetProperty "size" element |> Option.bind Style.Unit.TryFromJson
               Subscript = Json.tryGetBoolProperty "subscript" element
               Superscript = Json.tryGetBoolProperty "superscript" element
               Underline =
                 Json.tryGetIntProperty "underline" element
                 |> Option.bind Style.Underline.Deserialize
-              Font =
-                Json.tryGetProperty "font" element
-                |> Option.map Style.Font.FromJson
+              Font = Json.tryGetProperty "font" element |> Option.map Style.Font.FromJson
               Style = Json.tryGetStringProperty "style" element
               Elements =
                 Json.tryGetArrayProperty "elements" element
-                |> Option.map (fun els ->
-                    els
-                    |> List.choose ParagraphElementTemplate.TryFromJson)
+                |> Option.map (fun els -> els |> List.choose ParagraphElementTemplate.TryFromJson)
                 |> Option.defaultValue [] }
 
         member ftt.Build(ctx: TemplatingContext) =
@@ -738,3 +651,49 @@ module Templating =
                Font = ftt.Font
                Style = ftt.Style
                Elements = ftt.Elements |> List.map (fun el -> el.Build(ctx)) }: Elements.FormattedText)
+
+
+    and ImageTemplate =
+        { Source: string
+          Height: Style.Unit option
+          Width: Style.Unit option
+          Left: float option
+          Top: float option
+          Resolution: float option
+          // FillFormat
+          // LineFormat
+          // Picture format
+          // RelativeHorizontal
+          // RelativeVertical
+          ScaleHeight: float option
+          ScaleWidth: float option
+          // WrapFormat
+          LockAspectRatio: bool option }
+
+        static member FromJson(element: JsonElement) =
+            ({ Source = Json.tryGetStringProperty "source" element |> Option.defaultValue ""
+               Height = Json.tryGetProperty "height" element |> Option.bind Style.Unit.TryFromJson
+               Width = Json.tryGetProperty "width" element |> Option.bind Style.Unit.TryFromJson
+               Left = Json.tryGetDoubleProperty "left" element
+               Top = Json.tryGetDoubleProperty "top" element
+               Resolution = Json.tryGetDoubleProperty "resolution" element
+               // FillFormat
+               // LineFormat
+               // Picture format
+               // RelativeHorizontal
+               // RelativeVertical
+               ScaleHeight = Json.tryGetDoubleProperty "scaleHeight" element
+               ScaleWidth = Json.tryGetDoubleProperty "scaleWidth" element
+               // WrapFormat
+               LockAspectRatio = Json.tryGetBoolProperty "lockAspectRatio" element })
+
+        member it.Build(ctx: TemplatingContext) =
+            ({ Source = it.Source
+               Height = it.Height
+               Width = it.Width
+               Left = it.Left
+               Top = it.Top
+               Resolution = it.Resolution
+               ScaleHeight = it.ScaleHeight
+               ScaleWidth = it.ScaleWidth
+               LockAspectRatio = it.LockAspectRatio }: Elements.Image)

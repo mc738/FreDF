@@ -81,7 +81,7 @@ module Structure =
 
             hf.Elements
             |> List.iter (function
-                | Elements.DocumentElement.Image -> ()
+                | Elements.DocumentElement.Image i -> obj.Elements.Add(i.ToDocObj())
                 | Elements.DocumentElement.Paragraph p -> obj.Elements.Add(p.ToDocObj())
                 | Elements.DocumentElement.Table t -> obj.Elements.Add(t.ToDocObj())
                 | Elements.DocumentElement.PageBreak ->
