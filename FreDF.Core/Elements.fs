@@ -5,7 +5,7 @@
 module Elements =
 
     open System.Text.Json
-    open ToolBox.Core
+    open FsToolbox.Core
 
     // All section elements
     // * Chart
@@ -322,7 +322,7 @@ module Elements =
 
         member ft.ToDocObj() =
             let obj = MigraDocCore.DocumentObjectModel.FormattedText()
-
+                        
             ft.Bold |> Option.iter (fun v -> obj.Bold <- v)
 
             ft.Color |> Option.iter (fun c -> obj.Color <- c.ToDocObj())

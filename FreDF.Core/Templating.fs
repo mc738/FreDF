@@ -1,15 +1,11 @@
 ﻿namespace FreDF.Core
 
-open System.Text.Json
-open System.Text.RegularExpressions
-open MigraDocCore.DocumentObjectModel
-
-
 module Templating =
 
-
-    open ToolBox.Core
-
+    open System.Text.Json
+    open System.Text.RegularExpressions
+    open MigraDocCore.DocumentObjectModel
+    open FsToolbox.Core
 
     module Internal =
 

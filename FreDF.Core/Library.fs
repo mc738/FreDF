@@ -143,12 +143,12 @@ type PDFStyle =
 
     member s.DefineDocumentStyle(document: Document) =
         s.DefineStyle(document, true, "")
-        s.H1.DefineStyle(document, "Heading1")
-        s.H2.DefineStyle(document, "Heading2")
-        //s.H3.DefineStyle(document, "Heading3")
-        //s.H4.DefineStyle(document, "Heading4")
-        //s.H5.DefineStyle(document, "Heading5")
-        //s.H6.DefineStyle(document, "Heading6")
+        s.H1.DefineStyle(document, "Header1")
+        s.H2.DefineStyle(document, "Header2")
+        //s.H3.DefineStyle(document, "Header3")
+        //s.H4.DefineStyle(document, "Header4")
+        //s.H5.DefineStyle(document, "Header5")
+        //s.H6.DefineStyle(document, "Header6")
    
 type PDF(document: Document) =
         

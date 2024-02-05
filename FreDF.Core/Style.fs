@@ -4,7 +4,7 @@
 module Style =
 
     open System.Text.Json
-    open ToolBox.Core
+    open FsToolbox.Core
 
     // NOTE - styles are for internal use.
     // The naming/types can be confusing compared with MigraDocCore.DocumentObjectModel classes.
@@ -114,7 +114,7 @@ module Style =
                     let value name =
                         Json.tryGetByteProperty name element
                         |> Option.defaultValue 0uy
-
+                    
                     Color.RGBA(value "r", value "g", value "b", value "a")
                     |> Some
                 | "named" ->
@@ -657,9 +657,9 @@ module Style =
             | BulletList1 -> MigraDocCore.DocumentObjectModel.ListType.BulletList1
             | BulletList2 -> MigraDocCore.DocumentObjectModel.ListType.BulletList2
             | BulletList3 -> MigraDocCore.DocumentObjectModel.ListType.BulletList3
-            | NumberList1 -> MigraDocCore.DocumentObjectModel.ListType.BulletList1
-            | NumberList2 -> MigraDocCore.DocumentObjectModel.ListType.BulletList2
-            | NumberList3 -> MigraDocCore.DocumentObjectModel.ListType.BulletList3
+            | NumberList1 -> MigraDocCore.DocumentObjectModel.ListType.NumberList1
+            | NumberList2 -> MigraDocCore.DocumentObjectModel.ListType.NumberList2
+            | NumberList3 -> MigraDocCore.DocumentObjectModel.ListType.NumberList3
 
     and [<RequireQualifiedAccess>] LineSpacingRule =
         | Single

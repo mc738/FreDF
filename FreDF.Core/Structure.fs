@@ -4,7 +4,7 @@
 module Structure =
 
     open System.Text.Json
-    open ToolBox.Core
+    open FsToolbox.Core
 
     type PdfDocument =
         { Sections: Section list }

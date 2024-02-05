@@ -8,7 +8,6 @@ module PdfRenderer =
         let document = MigraDocCore.DocumentObjectModel.Document()
         style.DefineDocumentStyle document
         document
-        
     
     let build (styles: PDFStyle) (document: Structure.PdfDocument) =
         let pdf = init styles
@@ -33,9 +32,4 @@ module PdfRenderer =
         renderer.Document <- pdf
         renderer.RenderDocument()
         renderer.PdfDocument.Save(stream)
-        
-        
     
-        
-        
-
